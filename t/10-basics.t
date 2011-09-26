@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 use Test::Differences;
+use Test::Exception;
 
 use Carp qw/croak/;
 use File::Spec::Functions qw/catfile/;
@@ -33,6 +34,9 @@ $graph->add_file($source2_filename, action => $spew, dependencies => [ $source1_
 $graph->add_phony('build', action => $noop, dependencies => [ $source1_filename, $source2_filename ]);
 $graph->add_phony('test', action => $noop, dependencies => [ 'build' ]);
 $graph->add_phony('install', action => $noop, dependencies => [ 'build' ]);
+
+$graph->add_phony('loop1', dependencies => ['loop2']);
+$graph->add_phony('loop2', dependencies => ['loop1']);
 
 my @sorted = $graph->_sort_nodes('build');
 
@@ -92,6 +96,8 @@ for my $runner (sort keys %expected) {
 		}
 	}
 }
+
+throws_ok { $graph->run('loop1') } qr/loop1 has a circular dependency, aborting/, 'Looping gives an error';
 
 done_testing();
 

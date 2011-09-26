@@ -13,7 +13,7 @@ has skip_mkdir => (
 
 has dependencies => ( default => sub { [] },);
 
-has 'action';
+has action => default => sub { sub {} };
 
 1;
 
