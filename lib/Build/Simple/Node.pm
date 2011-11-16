@@ -1,6 +1,6 @@
 package Build::Simple::Node;
 
-use Mo;
+use Mo qw/default required/;
 
 has 'phony';
 
@@ -11,9 +11,13 @@ has skip_mkdir => (
 	},
 );
 
-has dependencies => ( default => sub { [] },);
+has dependencies => (
+	default => sub { [] },
+);
 
-has action => default => sub { sub {} };
+has action => (
+	default => sub { sub {} },
+);
 
 1;
 

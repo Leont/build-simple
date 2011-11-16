@@ -31,7 +31,13 @@ $graph->add_file($source1_filename, action => sub { $poke->(); $spew->(@_)});
 my $source2_filename = catfile($dirname, 'source2');
 $graph->add_file($source2_filename, action => $spew, dependencies => [ $source1_filename ]);
 
-$graph->add_phony('build', action => $noop, dependencies => [ $source1_filename, $source2_filename ]);
+my $source3_filename = catfile($dirname, 'source3.foo');
+#$graph->add_file($source3_filename);
+my $source4_filename = catfile($dirname, 'source3.bar');
+$graph->add_file($source4_filename, action => $spew, dependencies => [ $source1_filename ]);
+$graph->add_wildcard('*.foo', subst => sub { (my $other = shift) =~ s/\.foo$/.bar/; $other }, action => $spew);
+
+$graph->add_phony('build', action => $noop, dependencies => [ $source1_filename, $source2_filename, $source3_filename ]);
 $graph->add_phony('test', action => $noop, dependencies => [ 'build' ]);
 $graph->add_phony('install', action => $noop, dependencies => [ 'build' ]);
 
@@ -40,32 +46,40 @@ $graph->add_phony('loop2', dependencies => ['loop1']);
 
 my @sorted = $graph->_sort_nodes('build');
 
-eq_or_diff \@sorted, [ $source1_filename, $source2_filename, 'build' ], 'topological sort is ok';
+eq_or_diff \@sorted, [ $source1_filename, $source2_filename, $source4_filename, $source3_filename, 'build' ], 'topological sort is ok';
 
 my @runs     = qw/build test install/;
 my %expected = (
 	build => [
-		[qw{poke _testing/source1 _testing/source2 build}],
+		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build}],
 		[qw/build/],
 
 		sub { rmtree $dirname },
-		[qw{poke _testing/source1 _testing/source2 build}],
+		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build}],
 		[qw/build/],
 
 		sub { unlink $source2_filename or die "Couldn't remove $source2_filename: $!" },
 		[qw{_testing/source2 build}],
 		[qw/build/],
 
+		sub { unlink $source3_filename },
+		[qw{_testing/source3.foo build}],
+		[qw/build/],
+
+		sub { unlink $source4_filename },
+		[qw{_testing/source3.bar _testing/source3.foo build}],
+		[qw/build/],
+
 		sub { unlink $source1_filename },
-		[qw{poke _testing/source1 _testing/source2 build}],
+		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build}],
 		[qw/build/],
 	],
 	test    => [
-		[qw{poke _testing/source1 _testing/source2 build test}],
+		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build test}],
 		[qw/build test/],
 	],
 	install => [
-		[qw{poke _testing/source1 _testing/source2 build install}],
+		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build install}],
 		[qw/build install/],
 	],
 );

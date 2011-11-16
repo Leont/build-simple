@@ -1,15 +1,16 @@
 package Build::Simple;
 
-use Mo;
+use Mo qw/default/;
 
 use Carp;
 use File::Path;
 use List::MoreUtils;
 
 use Build::Simple::Node;
+use Build::Simple::Wildcard;
 
 has _nodes => (
-	default  => sub { {} },
+	default => sub { {} },
 );
 
 sub _get_node {
@@ -17,14 +18,14 @@ sub _get_node {
 	return $self->_nodes->{$key};
 }
 
-sub exists {
+sub has_file {
 	my ($self, $key) = @_;
 	return exists $self->_nodes->{$key};
 }
 
 sub add_file {
 	my ($self, $name, %args) = @_;
-	Carp::croak('File already exists in database') if !$args{override} && $self->_get_node($name);
+	Carp::croak("File '$name' already exists in database") if !$args{override} && $self->_get_node($name);
 	my $node = Build::Simple::Node->new(%args, phony => 0);
 	$self->_nodes->{$name} = $node;
 	return;
@@ -32,9 +33,28 @@ sub add_file {
 
 sub add_phony {
 	my ($self, $name, %args) = @_;
-	Carp::croak('Phony already exists in database') if !$args{override} && $self->_get_node($name);
+	Carp::croak("Phony '$name' already exists in database") if !$args{override} && $self->_get_node($name);
 	my $node = Build::Simple::Node->new(%args, phony => 1);
 	$self->_nodes->{$name} = $node;
+	return;
+}
+
+has _wildcards => (
+	default => sub { [] },
+);
+
+sub add_wildcard {
+	my ($self, $pattern, %args) = @_;
+	push @{ $self->_wildcards }, Build::Simple::Wildcard->new(%args, pattern => $pattern);
+	return;
+}
+
+sub _match_wildcard {
+	my ($self, $filename) = @_;
+	for my $pattern (@{ $self->_wildcards }) {
+		my $node = $pattern->match($filename);
+		return $node if $node;
+	}
 	return;
 }
 
@@ -42,7 +62,7 @@ sub _node_sorter {
 	my ($self, $current, $callback, $seen, $loop) = @_;
 	Carp::croak("$current has a circular dependency, aborting!\n") if exists $loop->{$current};
 	return if $seen->{$current}++;
-	my $node = $self->_get_node($current) or -f $current ? return : Carp::croak("Node $current doesn't exist");
+	my $node = $self->_get_node($current) || $self->_match_wildcard($current) or -f $current ? return : Carp::croak("Node $current doesn't exist");
 	local $loop->{$current} = 1;
 	$self->_node_sorter($_, $callback, $seen, $loop) for @{ $node->dependencies };
 	$callback->($current);
@@ -64,7 +84,8 @@ sub _is_phony {
 
 sub _run_node {
 	my ($self, $node_name, $seen_phony, $options) = @_;
-	my $node = $self->_get_node($node_name);
+	my $node = $self->_get_node($node_name) || $self->_match_wildcard($node_name);
+	die "Node for $node_name if not defined" if not defined $node;
 	if ($node->phony) {
 		return if $seen_phony->{$node_name}++;
 	}
@@ -79,7 +100,7 @@ sub _run_node {
 sub run {
 	my ($self, $startpoint, %options) = @_;
 	my %seen_phony;
-	$self->_node_sorter($startpoint, sub { $self->_run_node($_[0], \%seen_phony, \%options) }, {}, {});
+	$self->_node_sorter($startpoint, sub { $self->_run_node($_[0]) }, {}, {});
 	return;
 }
 
