@@ -28,6 +28,7 @@ sub add_file {
 	Carp::croak("File '$name' already exists in database") if !$args{override} && $self->_get_node($name);
 	my $node = Build::Simple::Node->new(%args, phony => 0);
 	$self->_nodes->{$name} = $node;
+	push @{ $self->_get_node($_)->dependencies }, $name for @{ $args{dependents} };
 	return;
 }
 
@@ -36,6 +37,7 @@ sub add_phony {
 	Carp::croak("Phony '$name' already exists in database") if !$args{override} && $self->_get_node($name);
 	my $node = Build::Simple::Node->new(%args, phony => 1);
 	$self->_nodes->{$name} = $node;
+	push @{ $self->_get_node($_)->dependencies }, $name for @{ $args{dependents} };
 	return;
 }
 
