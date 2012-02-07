@@ -34,7 +34,7 @@ $graph->add_file($source2_filename, action => $spew, dependencies => [ $source1_
 my $source3_filename = catfile($dirname, 'source3.foo');
 #$graph->add_file($source3_filename);
 my $source4_filename = catfile($dirname, 'source3.bar');
-$graph->add_file($source4_filename, action => $spew, dependencies => [ $source1_filename ]);
+$graph->add_file($source4_filename, action => $spew);
 $graph->add_wildcard('*.foo', subst => sub { (my $other = shift) =~ s/\.foo$/.bar/; $other }, action => $spew);
 
 $graph->add_phony('build', action => $noop, dependencies => [ $source1_filename, $source2_filename, $source3_filename ]);
@@ -71,7 +71,7 @@ my %expected = (
 		[qw/build/],
 
 		sub { unlink $source1_filename },
-		[qw{poke _testing/source1 _testing/source2 _testing/source3.bar _testing/source3.foo build}],
+		[qw{poke _testing/source1 _testing/source2 build}],
 		[qw/build/],
 	],
 	test    => [
