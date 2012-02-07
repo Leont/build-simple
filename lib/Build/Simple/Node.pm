@@ -21,7 +21,7 @@ has action => (
 
 1;
 
-__END__
-
 #ABSTRACT: A Build::Simple node
+
+__END__
 

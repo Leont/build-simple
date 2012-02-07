@@ -37,6 +37,12 @@ sub match {
 
 1;
 
+#ABSTRACT: A Build::Simple wildcard pattern
+
 __END__
 
-#ABSTRACT: A Build::Simple wildcard pattern
+=begin Pod::Coverage
+
+match
+
+=end Pod::Coverage

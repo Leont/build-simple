@@ -108,9 +108,9 @@ sub run {
 
 1;
 
-__END__
-
 #ABSTRACT: A minimalistic dependency system
+
+__END__
 
 =head1 DESCRIPTION
 
@@ -147,3 +147,10 @@ Make all of C<$goal>'s dependencies, and then C<$goal> itself.
 =method exists($filename)
 
 Returns true if a node exists in the graph, returns false otherwise.
+
+=begin Pod::Coverage
+
+add_wildcard
+has_file
+
+=end Pod::Coverage
