@@ -1,4 +1,4 @@
-package Build::Simple::Wildcard;
+package Build::Simple::Pattern;
 
 use Mo qw/default required coerce/;
 use File::Basename qw/basename/;
@@ -37,7 +37,7 @@ sub match {
 
 1;
 
-#ABSTRACT: A Build::Simple wildcard pattern
+#ABSTRACT: A Build::Simple pattern
 
 __END__
 
