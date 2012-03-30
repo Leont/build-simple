@@ -19,7 +19,19 @@ has skip_mkdir => (
 );
 
 has subst => (
-	default => sub { [] },
+	coerce => sub {
+		my $arg = shift;
+		return $arg if ref($arg) eq 'CODE';
+		if (ref($arg) eq 'ARRAY') {
+			my ($pattern, $replacement) = @{$arg};
+			return sub {
+				my $filename = shift;
+				$filename =~ s/$pattern/$replacement/;
+				return $filename
+			};
+		}
+	},
+	required => 1,
 );
 
 has action => (
