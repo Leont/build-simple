@@ -19,6 +19,10 @@ has action => (
 	default => sub { sub {} },
 );
 
+has argument => (
+	default => sub { undef },
+);
+
 1;
 
 #ABSTRACT: A Build::Simple node

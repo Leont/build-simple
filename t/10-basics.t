@@ -15,13 +15,13 @@ use List::MoreUtils qw/first_index/;
 
 use Build::Simple;
 
-my $spew = sub { my %info = @_; next_is($info{name}); spew($info{name}, $info{name}) };
+my $spew = sub { next_is($_[0]); spew($_[0], $_[0]) };
 my $poke = sub { next_is('poke') };
-my $noop = sub { my %args = @_; next_is($args{name}) };
+my $noop = sub { next_is($_[0]) };
 
 my $dirname = '_testing';
 END { rmtree $dirname }
-$SIG{INT} = sub { rmtree $dirname; kill INT => $$ };
+$SIG{INT} = sub { rmtree $dirname; die "Interrupted\n" };
 
 my $graph = Build::Simple->new;
 
