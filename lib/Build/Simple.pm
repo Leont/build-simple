@@ -1,6 +1,6 @@
 package Build::Simple;
 
-use Mo qw/default/;
+use Moo;
 
 use Carp;
 use File::Path;
@@ -10,6 +10,7 @@ use Build::Simple::Node;
 use Build::Simple::Pattern;
 
 has _nodes => (
+	is => 'ro',
 	default => sub { {} },
 );
 
@@ -42,6 +43,7 @@ sub add_phony {
 }
 
 has _patterns => (
+	is => 'ro',
 	default => sub { [] },
 );
 

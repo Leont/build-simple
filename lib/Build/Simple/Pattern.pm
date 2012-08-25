@@ -1,17 +1,23 @@
 package Build::Simple::Pattern;
 
-use Mo qw/default required coerce/;
+use Moo;
 use File::Basename qw/basename/;
 use Text::Glob qw/glob_to_regex/;
 
 has pattern => (
+	is => 'ro',
 	required => 1,
 	coerce => sub {
 		return glob_to_regex($_[0]);
 	}
 );
 
+has phony => (
+	is => 'ro',
+);
+
 has skip_mkdir => (
+	is => 'lazy',
 	default   => sub {
 		my $self = shift;
 		return $self->phony;
@@ -19,6 +25,7 @@ has skip_mkdir => (
 );
 
 has subst => (
+	is => 'ro',
 	coerce => sub {
 		my $arg = shift;
 		return $arg if ref($arg) eq 'CODE';
@@ -35,6 +42,7 @@ has subst => (
 );
 
 has action => (
+	is => 'ro',
 	required => 1,
 );
 

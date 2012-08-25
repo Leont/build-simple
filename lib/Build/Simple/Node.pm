@@ -1,10 +1,13 @@
 package Build::Simple::Node;
 
-use Mo qw/default required/;
+use Moo;
 
-has 'phony';
+has phony => (
+	is => 'ro',
+);
 
 has skip_mkdir => (
+	is => 'ro',
 	default   => sub {
 		my $self = shift;
 		return $self->phony;
@@ -12,14 +15,17 @@ has skip_mkdir => (
 );
 
 has dependencies => (
+	is => 'ro',
 	default => sub { [] },
 );
 
 has action => (
+	is => 'ro',
 	default => sub { sub {} },
 );
 
 has argument => (
+	is => 'ro',
 	default => sub { undef },
 );
 
