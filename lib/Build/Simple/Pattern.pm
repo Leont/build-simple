@@ -50,7 +50,7 @@ sub match {
 	my ($self, $filename) = @_;
 	if (basename($filename) =~ $self->pattern) {
 		my @dependencies = $self->subst->($filename);
-		return Build::Simple::Node->new(dependencies => \@dependencies, action => $self->action, phony => 0, argument => $filename);
+		return Build::Simple::Node->new(dependencies => \@dependencies, action => $self->action, phony => 0);
 	}
 	return;
 }

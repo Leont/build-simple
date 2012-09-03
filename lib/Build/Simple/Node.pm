@@ -24,11 +24,6 @@ has action => (
 	default => sub { sub {} },
 );
 
-has argument => (
-	is => 'ro',
-	default => sub { undef },
-);
-
 1;
 
 #ABSTRACT: A Build::Simple node

@@ -53,19 +53,6 @@ sub add_pattern {
 	return;
 }
 
-sub add_dynamic {
-	my ($self, %args) = @_;
-	die if not defined $args{from};
-	my @from = ref($args{from}) eq 'CODE' ? $args{from}->() : $args{from};
-	for my $node (@from) {
-		local $_ = $node;
-		my $to = $args{subst}->($node);
-		my @deps = ($node, @{ $args{dependencies} || [] });
-		$self->add_file($to, %args, argument => $node, dependencies => \@deps);
-	}
-	return;
-}
-
 sub _match_pattern {
 	my ($self, $filename) = @_;
 	for my $pattern (@{ $self->_patterns }) {
@@ -104,11 +91,11 @@ sub _run_node {
 	my $node = $self->_get_node($node_name) || $self->_match_pattern($node_name);
 	die "Node for $node_name if not defined" if not defined $node;
 	if (!$node->phony) {
-		my @files = grep { !$self->_is_phony($_) } sort map { ref($_) eq 'CODE' ? $_->() : $_ } @{ $node->dependencies };
+		my @files = grep { !$self->_is_phony($_) } sort @{ $node->dependencies };
 		return if -e $node_name and List::MoreUtils::none { not -e $_ or (!-d $_ and -M $node_name > -M $_) } @files;
 	}
 	File::Path::mkpath(File::Basename::dirname($node_name)) if !$node->skip_mkdir;
-	$node->action->($node_name, $node->argument, dependencies => $node->dependencies, %{$options});
+	$node->action->(name => $node_name, dependencies => $node->dependencies, %{$options});
 }
 
 sub run {
