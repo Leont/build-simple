@@ -108,8 +108,6 @@ sub run {
 
 #ABSTRACT: A minimalistic dependency system
 
-__END__
-
 =head1 DESCRIPTION
 
 Build::Simply is a simple but effective dependency engine. It tries to support 

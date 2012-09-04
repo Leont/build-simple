@@ -28,5 +28,3 @@ has action => (
 
 #ABSTRACT: A Build::Simple node
 
-__END__
-
