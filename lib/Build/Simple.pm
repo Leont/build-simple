@@ -7,7 +7,6 @@ use File::Path;
 use List::MoreUtils;
 
 use Build::Simple::Node;
-use Build::Simple::Pattern;
 
 has _nodes => (
 	is => 'ro',
@@ -42,31 +41,11 @@ sub add_phony {
 	return;
 }
 
-has _patterns => (
-	is => 'ro',
-	default => sub { [] },
-);
-
-sub add_pattern {
-	my ($self, $pattern, %args) = @_;
-	push @{ $self->_patterns }, Build::Simple::Pattern->new(%args, pattern => $pattern);
-	return;
-}
-
-sub _match_pattern {
-	my ($self, $filename) = @_;
-	for my $pattern (@{ $self->_patterns }) {
-		my $node = $pattern->match($filename);
-		return $node if $node;
-	}
-	return;
-}
-
 sub _node_sorter {
 	my ($self, $current, $callback, $seen, $loop) = @_;
 	Carp::croak("$current has a circular dependency, aborting!\n") if exists $loop->{$current};
 	return if $seen->{$current}++;
-	my $node = $self->_get_node($current) || $self->_match_pattern($current) or -f $current ? return : Carp::croak("Node $current doesn't exist");
+	my $node = $self->_get_node($current) or Carp::croak("Node $current doesn't exist");
 	local $loop->{$current} = 1;
 	$self->_node_sorter($_, $callback, $seen, $loop) for @{ $node->dependencies };
 	$callback->($current);
@@ -88,7 +67,7 @@ sub _is_phony {
 
 sub _run_node {
 	my ($self, $node_name, $options) = @_;
-	my $node = $self->_get_node($node_name) || $self->_match_pattern($node_name);
+	my $node = $self->_get_node($node_name);
 	die "Node for $node_name if not defined" if not defined $node;
 	if (!$node->phony) {
 		my @files = grep { !$self->_is_phony($_) } sort @{ $node->dependencies };
@@ -146,7 +125,6 @@ Returns true if a node exists in the graph, returns false otherwise.
 
 =begin Pod::Coverage
 
-add_pattern
 has_file
 
 =end Pod::Coverage
