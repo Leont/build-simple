@@ -5,7 +5,7 @@ use warnings FATAL => 'all';
 
 use Test::More;
 use Test::Differences;
-use Test::Exception;
+use Test::Fatal;
 
 use Carp qw/croak/;
 use File::Spec::Functions qw/catfile/;
@@ -97,7 +97,7 @@ for my $runner (sort keys %expected) {
 	}
 }
 
-throws_ok { $graph->run('loop1') } qr/loop1 has a circular dependency, aborting/, 'Looping gives an error';
+like(exception { $graph->run('loop1') }, qr/loop1 has a circular dependency, aborting/, 'Looping gives an error');
 
 done_testing();
 
