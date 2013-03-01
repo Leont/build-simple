@@ -100,13 +100,10 @@ sub _is_phony {
 }
 
 sub _run_node {
-	my ($self, $node_name, $seen_phony, $options) = @_;
+	my ($self, $node_name, $options) = @_;
 	my $node = $self->_get_node($node_name) || $self->_match_pattern($node_name);
 	die "Node for $node_name if not defined" if not defined $node;
-	if ($node->phony) {
-		return if $seen_phony->{$node_name}++;
-	}
-	else {
+	if (!$node->phony) {
 		my @files = grep { !$self->_is_phony($_) } sort map { ref($_) eq 'CODE' ? $_->() : $_ } @{ $node->dependencies };
 		return if -e $node_name and List::MoreUtils::none { not -e $_ or (!-d $_ and -M $node_name > -M $_) } @files;
 	}
@@ -116,8 +113,7 @@ sub _run_node {
 
 sub run {
 	my ($self, $startpoint, %options) = @_;
-	my %seen_phony;
-	$self->_node_sorter($startpoint, sub { $self->_run_node($_[0]) }, {}, {});
+	$self->_node_sorter($startpoint, sub { $self->_run_node($_[0], \%options) }, {}, {});
 	return;
 }
 
