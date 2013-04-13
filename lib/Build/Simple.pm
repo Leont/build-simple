@@ -48,7 +48,7 @@ sub _node_sorter {
 	my $node = $self->_get_node($current) or Carp::croak("Node $current doesn't exist");
 	local $loop->{$current} = 1;
 	$self->_node_sorter($_, $callback, $seen, $loop) for @{ $node->dependencies };
-	$callback->($current);
+	$callback->($current, $node);
 	return;
 }
 
@@ -65,21 +65,9 @@ sub _is_phony {
 	return $node ? $node->phony : 0;
 }
 
-sub _run_node {
-	my ($self, $node_name, $options) = @_;
-	my $node = $self->_get_node($node_name);
-	die "Node for $node_name if not defined" if not defined $node;
-	if (!$node->phony) {
-		my @files = grep { !$self->_is_phony($_) } sort @{ $node->dependencies };
-		return if -e $node_name and List::MoreUtils::none { not -e $_ or (!-d $_ and -M $node_name > -M $_) } @files;
-	}
-	File::Path::mkpath(File::Basename::dirname($node_name)) if !$node->skip_mkdir;
-	$node->action->(name => $node_name, dependencies => $node->dependencies, %{$options});
-}
-
 sub run {
 	my ($self, $startpoint, %options) = @_;
-	$self->_node_sorter($startpoint, sub { $self->_run_node($_[0], \%options) }, {}, {});
+	$self->_node_sorter($startpoint, sub { $_[1]->run($_[0], $self, \%options) }, {}, {});
 	return;
 }
 
