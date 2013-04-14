@@ -18,7 +18,7 @@ sub _get_node {
 	return $self->_nodes->{$key};
 }
 
-sub has_file {
+sub has_node {
 	my ($self, $key) = @_;
 	return exists $self->_nodes->{$key};
 }
@@ -107,7 +107,7 @@ Add a phony dependency to the graph. It takes the same options as add_file does,
 
 Make all of C<$goal>'s dependencies, and then C<$goal> itself.
 
-=method exists($filename)
+=method has_node($filename)
 
 Returns true if a node exists in the graph, returns false otherwise.
 
