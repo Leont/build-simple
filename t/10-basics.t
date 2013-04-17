@@ -11,7 +11,6 @@ use Carp qw/croak/;
 use File::Spec::Functions qw/catfile/;
 use File::Basename qw/dirname/;
 use File::Path qw/mkpath rmtree/;
-use List::MoreUtils qw/first_index/;
 
 use Build::Simple;
 
@@ -70,28 +69,27 @@ my %expected = (
 	],
 );
 
-my ($run, @expected);
+my $run;
+our @got;
 sub next_is {
-	my $gotten   = shift;
-	my $index    = first_index { $_ eq $gotten } @expected;
-	my $expected = $expected[0];
-	splice @expected, $index, 1 if $index > -1;
-	local $Test::Builder::Level = $Test::Builder::Level + 1;
-	is $gotten, $expected, sprintf "Expecting %s", (defined $expected ? "'$expected'" : 'undef');
+	my $gotten = shift;
+	push @got, $gotten;
 }
 
 for my $runner (sort keys %expected) {
 	rmtree $dirname;
 	$run = $runner;
+	my $count = 1;
 	for my $runpart (@{ $expected{$runner} }) {
 		if (ref($runpart) eq 'CODE') {
 			$runpart->();
 		}
 		else {
-			@expected = @{$runpart};
+			my @expected = map { catfile(File::Spec::Unix->splitdir($_)) } @{$runpart};
+			local @got;
 			$graph->run($run, verbosity => 1);
-			eq_or_diff \@expected, [], "\@expected is empty at the end of run $run";
-			diag(sprintf "Still expecting %s", join ', ', map { "'$_'" } @expected) if @expected;
+			eq_or_diff \@expected, \@got, "\@got is @expected in run $run-$count";
+			$count++;
 			sleep 1;
 		}
 	}
