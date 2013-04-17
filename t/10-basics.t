@@ -55,7 +55,7 @@ my %expected = (
 		[qw{_testing/source2 build}],
 		[qw/build/],
 
-		sub { unlink $source1_filename },
+		sub { unlink $source1_filename; sleep 1 },
 		[qw{poke _testing/source1 _testing/source2 build}],
 		[qw/build/],
 	],
@@ -90,7 +90,6 @@ for my $runner (sort keys %expected) {
 			$graph->run($run, verbosity => 1);
 			eq_or_diff \@expected, \@got, "\@got is @expected in run $run-$count";
 			$count++;
-			sleep 1;
 		}
 	}
 }
