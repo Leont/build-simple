@@ -88,7 +88,7 @@ for my $runner (sort keys %expected) {
 			my @expected = map { catfile(File::Spec::Unix->splitdir($_)) } @{$runpart};
 			local @got;
 			$graph->run($run, verbosity => 1);
-			eq_or_diff \@expected, \@got, "\@got is @expected in run $run-$count";
+			eq_or_diff \@got, \@expected, "\@got is @expected in run $run-$count";
 			$count++;
 		}
 	}
