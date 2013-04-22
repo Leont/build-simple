@@ -4,7 +4,6 @@ use Moo;
 
 use Carp;
 use File::Path;
-use List::MoreUtils;
 
 use Build::Simple::Node;
 
